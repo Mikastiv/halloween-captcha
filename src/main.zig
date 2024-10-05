@@ -6,6 +6,7 @@ const home = "\x1b[H";
 const Frame = struct {
     data: []const u8,
     names: []const []const u8,
+    spookiness: u32,
 };
 
 const time_between_frames_ns = std.time.ns_per_s * 2;
@@ -19,16 +20,37 @@ pub fn main() !void {
     var rng = std.Random.DefaultPrng.init(seed);
 
     var frames = [_]Frame{
-        .{ .data = bats, .names = &.{ "bat", "bats" } },
-        .{ .data = pumpkins, .names = &.{ "pumpkin", "pumpkins" } },
-        .{ .data = spiders, .names = &.{ "spider", "spiders" } },
-        .{ .data = witch, .names = &.{"witch"} },
-        .{ .data = skeletons, .names = &.{ "skeleton", "skeletons" } },
+        .{
+            .data = bats,
+            .names = &.{ "bat", "bats" },
+            .spookiness = 6,
+        },
+        .{
+            .data = pumpkins,
+            .names = &.{ "pumpkin", "pumpkins" },
+            .spookiness = 2,
+        },
+        .{
+            .data = spiders,
+            .names = &.{ "spider", "spiders" },
+            .spookiness = 4,
+        },
+        .{
+            .data = witch,
+            .names = &.{"witch"},
+            .spookiness = 8,
+        },
+        .{
+            .data = skeletons,
+            .names = &.{ "skeleton", "skeletons" },
+            .spookiness = 10,
+        },
     };
 
     rng.random().shuffle(Frame, &frames);
 
-    const answer_frame = rng.random().int(usize) % frames.len;
+    const answer_index = rng.random().int(usize) % frames.len;
+    const selected_frame = &frames[answer_index];
 
     for (frames) |frame| {
         try stdout.writeAll(home);
@@ -40,21 +62,43 @@ pub fn main() !void {
     try stdout.writeAll(home);
     try stdout.writeAll(clear);
 
-    try stdout.print("what was image number {d}? (one word)> ", .{answer_frame + 1});
+    try stdout.print("what was image number {d}? (one word)> ", .{answer_index + 1});
 
-    var buffer: [256]u8 = undefined;
-    const input_size = try stdin.read(&buffer);
-    const input = std.mem.trim(u8, buffer[0..input_size], &std.ascii.whitespace);
+    var name_buffer: [256]u8 = undefined;
+    const name_size = try stdin.read(&name_buffer);
+    const input_name = std.mem.trim(u8, name_buffer[0..name_size], &std.ascii.whitespace);
 
-    var success = false;
-    for (frames[answer_frame].names) |name| {
-        if (std.ascii.eqlIgnoreCase(input, name)) {
-            success = true;
+    var spookiness_buffer: [256]u8 = undefined;
+    const spookiness = while (true) {
+        try stdout.writeAll("how spooky was it? (1-10)> ");
+
+        const spookiness_size = try stdin.read(&spookiness_buffer);
+        const spookiness_str = std.mem.trim(u8, spookiness_buffer[0..spookiness_size], &std.ascii.whitespace);
+
+        break std.fmt.parseInt(u32, spookiness_str, 10) catch {
+            try stdout.writeAll("enter a number!\n");
+            continue;
+        };
+    };
+
+    var names_match = false;
+    for (selected_frame.names) |name| {
+        if (std.ascii.eqlIgnoreCase(input_name, name)) {
+            names_match = true;
             break;
         }
     }
 
-    if (success) {
+    // accurate spookiness scale for a human
+    var spookiness_match = false;
+    const spookiness_margin = 1;
+    if (spookiness >= selected_frame.spookiness - spookiness_margin and
+        spookiness <= selected_frame.spookiness + spookiness_margin)
+    {
+        spookiness_match = true;
+    }
+
+    if (names_match and spookiness_match) {
         try stdout.writeAll("you are human\n");
         try stdout.writeAll(happy_halloween);
     } else {
