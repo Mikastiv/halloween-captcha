@@ -75,10 +75,17 @@ pub fn main() !void {
         const spookiness_size = try stdin.read(&spookiness_buffer);
         const spookiness_str = std.mem.trim(u8, spookiness_buffer[0..spookiness_size], &std.ascii.whitespace);
 
-        break std.fmt.parseInt(u32, spookiness_str, 10) catch {
+        const number = std.fmt.parseInt(u32, spookiness_str, 10) catch {
             try stdout.writeAll("enter a number!\n");
             continue;
         };
+
+        if (number < 1 or number > 10) {
+            try stdout.writeAll("enter a number! (1-10)\n");
+            continue;
+        }
+
+        break number;
     };
 
     var names_match = false;
