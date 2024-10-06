@@ -1,3 +1,5 @@
+// built with zig 0.13.0
+
 const std = @import("std");
 
 const clear = "\x1b[J";
@@ -15,7 +17,7 @@ pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
     const stdin = std.io.getStdIn().reader();
 
-    // Fetch top secret random seed
+    // fetch top secret random seed
     const seed: u64 = @bitCast(std.time.timestamp());
     var rng = std.Random.DefaultPrng.init(seed);
 
@@ -53,14 +55,12 @@ pub fn main() !void {
     const selected_frame = &frames[answer_index];
 
     for (frames) |frame| {
-        try stdout.writeAll(home);
-        try stdout.writeAll(clear);
+        try stdout.writeAll(home ++ clear);
         try stdout.writeAll(frame.data);
         std.time.sleep(time_between_frames_ns);
     }
 
-    try stdout.writeAll(home);
-    try stdout.writeAll(clear);
+    try stdout.writeAll(home ++ clear);
 
     try stdout.print("what was image number {d}? (one word)> ", .{answer_index + 1});
 
@@ -109,7 +109,7 @@ pub fn main() !void {
         try stdout.writeAll("you are human\n");
         try stdout.writeAll(happy_halloween);
     } else {
-        try stdout.writeAll("robot detected!\n");
+        try stdout.writeAll("AI detected!\n");
         try stdout.writeAll(robot);
     }
 }
