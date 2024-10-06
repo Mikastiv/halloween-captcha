@@ -69,7 +69,7 @@ pub fn main() !void {
     const input_name = std.mem.trim(u8, name_buffer[0..name_size], &std.ascii.whitespace);
 
     var spookiness_buffer: [256]u8 = undefined;
-    const spookiness = while (true) {
+    const input_spookiness = while (true) {
         try stdout.writeAll("how spooky was it? (1-10)> ");
 
         const spookiness_size = try stdin.read(&spookiness_buffer);
@@ -99,8 +99,8 @@ pub fn main() !void {
     // accurate spookiness scale for a human
     var spookiness_match = false;
     const spookiness_margin = 1;
-    if (spookiness >= selected_frame.spookiness - spookiness_margin and
-        spookiness <= selected_frame.spookiness + spookiness_margin)
+    if (input_spookiness >= selected_frame.spookiness - spookiness_margin and
+        input_spookiness <= selected_frame.spookiness + spookiness_margin)
     {
         spookiness_match = true;
     }
